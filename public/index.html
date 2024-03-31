@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Video Player</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+
+      #videoContainer {
+        display: flex;
+        margin: 20px;
+      }
+
+      #videoList {
+        max-height: 100vh;
+        overflow-y: scroll;
+        max-width: 500px;
+        flex: 1;
+        padding-right: 20px;
+      }
+
+      #videoList h2 {
+        margin-top: 0;
+      }
+
+      #videoTitles {
+        list-style: none;
+        padding: 0;
+      }
+
+      #videoTitles li {
+        cursor: pointer;
+        padding: 5px;
+        margin-bottom: 5px;
+        background-color: #f4f4f4;
+        border-radius: 5px;
+      }
+
+      #videoTitles li:hover {
+        background-color: #eaeaea;
+      }
+
+      #videoTitles li.active {
+        background-color: #b3d9ff;
+      }
+
+      #videoPlayer {
+        /*flex: 2;*/
+        width: 700px;
+        margin: auto;
+      }
+
+      #videoPlayer h2 {
+        margin-top: 0;
+      }
+
+      #video {
+        width: 100%;
+        border-radius: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="videoContainer">
+      <div id="videoList">
+        <h2>Videos</h2>
+        <ul id="videoTitles"></ul>
+      </div>
+      <div id="videoPlayer">
+        <h2>Video Player</h2>
+        <video id="video" controls autoplay>
+            <source src="" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const videoTitles = document.getElementById("videoTitles");
+        const videoPlayer = document.getElementById("video");
+
+        fetch("/videos")
+          .then((response) => response.json())
+          .then((files) => {
+            files.forEach((filename) => {
+              const listItem = document.createElement("li");
+              listItem.textContent = filename;
+              listItem.addEventListener("click", function () {
+                playVideo(filename);
+                // Remove 'active' class from all items
+                const items = document.querySelectorAll("#videoTitles li");
+                items.forEach((item) => {
+                  item.classList.remove("active");
+                });
+                // Add 'active' class to the clicked item
+                listItem.classList.add("active");
+              });
+              videoTitles.appendChild(listItem);
+            });
+          })
+          .catch((error) => console.error("Error fetching videos:", error));
+
+        // Function to play selected video
+        function playVideo(filename) {
+          videoPlayer.src = "videos/" + filename;
+          videoPlayer.play();
+        }
+
+        // Add event listener for keyboard shortcuts
+        document.addEventListener("keydown", function (event) {
+          if (event.code === "Space") {
+            if (videoPlayer.paused) {
+              videoPlayer.play();
+            } else {
+              videoPlayer.pause();
+            }
+          } else if (event.shiftKey && event.code === "Period") {
+            videoPlayer.playbackRate = 2.0;
+          }
+        });
+
+        // Reset playback rate on keyup
+        document.addEventListener("keyup", function (event) {
+          if (event.shiftKey && event.code === "Period") {
+            videoPlayer.playbackRate = 1.0;
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
